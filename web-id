@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract WebID {
+    string public name;
+    address public owner;
+
+    constructor(string memory _name) {
+        name = _name;
+        owner = msg.sender;
+    }
+
+    function changeName(string memory _newName) public {
+        require(msg.sender == owner, "Only the owner can change the name");
+        name = _newName;
+    }
+}
