@@ -1,0 +1,51 @@
+// SimpleIdentity.sol
+pragma solidity ^0.8.0;
+
+contract SimpleIdentity {
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function setIdentity(string memory _id) public {
+        require(msg.sender == owner, "Only the owner can set the identity");
+        emit IdentitySet(_id);
+    }
+
+    event IdentitySet(string _id);
+}
+
+[dependencies]
+ethers = "0.18.0"
+tokio = { version = "1", features = ["full"] }
+
+use ethers::prelude::*;
+
+#[tokio::main]
+async fn main() {
+    // Replace with your Ethereum node endpoint
+    let http = Http::new("http://localhost:8545").expect("could not connect to Ethereum node");
+    let provider = Provider::<Http>::new(http);
+    let signer = LocalWallet::generate(&mut rand::thread_rng());
+
+    let client = SignerMiddleware::new(provider, signer);
+    let contract = ContractFactory::new(
+        include_bytes!("path/to/SimpleIdentity.json"),
+        client,
+    )
+    .expect("could not create contract factory");
+
+    // Deploy the contract
+    let contract = contract
+        .deploy("Constructor arguments if any")
+        .await
+        .expect("could not deploy contract");
+
+    // Set identity
+    let tx = contract.set_identity("MyWeb3ID").send().await.expect("set identity tx failed");
+
+    // Wait for the transaction to be mined
+    let receipt = tx.await.expect("transaction failed");
+    println!("Identity set. Transaction hash: {:?}", receipt.transaction_hash);
+}
